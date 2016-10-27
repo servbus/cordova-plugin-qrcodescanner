@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-qrcodescanner" version="0.0.1">
+  <name>QRCodeScanner</name>
+  <description>You can use the QRCodeScanner plugin to scan barcodes and QRCode(using the device's camera).</description>
+  <license>apache</license>
+  <repo>https://github.com/servbus/cordova-plugin-qrcodescanner.git</repo>
+  <issue>https://github.com/servbus/cordova-plugin-qrcodescanner.git/issues</issue>
+  <engines>
+    <engine name="cordova" version=">=3.0.0"/>
+  </engines>
+  <js-module src="www/qrcodescanner.js" name="QRCodeScanner">
+    <clobbers target="cordova.plugins.qrcodeScanner"/>
+  </js-module>
+  <platform name="ios">
+    <config-file target="config.xml" parent="/*">
+      <feature name="QRCodeScanner">
+        <param name="ios-package" value="HWPQRCodeScanner"/>
+      </feature>
+    </config-file>
+    <preference name="CAMERA_USAGE_DESCRIPTION" default=" "/>
+    <config-file target="*-Info.plist" parent="NSCameraUsageDescription">
+      <string>$CAMERA_USAGE_DESCRIPTION</string>
+    </config-file>
+    <resource-file src="src/ios/CDVQRCodeScanner.bundle"/>
+    <header-file src="src/ios/Bridging-Header.h"/>
+    
+    <source-file src="src/ios/QRCodeScannerPlugin.swift"/>
+    <source-file src="src/ios/LBXPermissions.swift"/>
+    <source-file src="src/ios/LBXScanLineAnimation.swift"/>
+    <source-file src="src/ios/LBXScanNetAnimation.swift"/>
+    <source-file src="src/ios/LBXScanView.swift"/>
+    <source-file src="src/ios/LBXScanViewController.swift"/>
+    <source-file src="src/ios/LBXScanViewStyle.swift"/>
+    <source-file src="src/ios/LBXScanWrapper.swift"/>
+
+    <framework src="AVFoundation.framework"/>
+    <framework src="AssetsLibrary.framework"/>
+    <framework src="CoreVideo.framework"/>
+    <framework src="QuartzCore.framework"/>
+    <framework src="CoreGraphics.framework"/>
+    <framework src="CoreImage.framework"/>
+    <framework src="AudioToolbox.framework"/>
+  </platform>
+  <platform name="android">
+    <source-file src="src/android/com/phonegap/plugins/barcodescanner/BarcodeScanner.java" target-dir="src/com/phonegap/plugins/barcodescanner"/>
+    <config-file target="res/xml/config.xml" parent="/*">
+      <feature name="QRCodeScanner">
+        <param name="android-package" value="com.phonegap.plugins.barcodescanner.BarcodeScanner"/>
+      </feature>
+    </config-file>
+    <config-file target="AndroidManifest.xml" parent="/manifest/application">
+      <activity android:name="com.google.zxing.client.android.CaptureActivity" android:clearTaskOnLaunch="true" android:configChanges="orientation|keyboardHidden|screenSize" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:windowSoftInputMode="stateAlwaysHidden" android:exported="false">
+        <intent-filter>
+          <action android:name="com.google.zxing.client.android.SCAN"/>
+          <category android:name="android.intent.category.DEFAULT"/>
+        </intent-filter>
+      </activity>
+      <activity android:name="com.google.zxing.client.android.encode.EncodeActivity" android:label="Share">
+        <intent-filter>
+          <action android:name="com.phonegap.plugins.barcodescanner.ENCODE"/>
+          <category android:name="android.intent.category.DEFAULT"/>
+        </intent-filter>
+      </activity>
+      <activity android:name="com.google.zxing.client.android.HelpActivity" android:label="Share">
+        <intent-filter>
+          <action android:name="android.intent.action.VIEW"/>
+          <category android:name="android.intent.category.DEFAULT"/>
+        </intent-filter>
+      </activity>
+    </config-file>
+    <config-file target="AndroidManifest.xml" parent="/manifest">
+      <uses-permission android:name="android.permission.CAMERA"/>
+      <uses-permission android:name="android.permission.FLASHLIGHT"/>
+      <uses-feature android:name="android.hardware.camera" android:required="true"/>
+    </config-file>
+    <framework src="src/android/barcodescanner.gradle" custom="true" type="gradleReference"/>
+    <resource-file src="src/android/barcodescanner-release-2.0.1.aar" target="libs/barcodescanner.aar"/>
+    <dependency id="cordova-plugin-compat" version="^1.0.0"/>
+  </platform>
+</plugin>
