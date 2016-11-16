@@ -8,6 +8,32 @@ import AVFoundation
     
     func scan(command: CDVInvokedUrlCommand) {
         //var message = command.arguments[0] as String
+        scanCommand=command;
+        
+        if(!LBXPermissions.isGetCameraPermission()){
+            
+            let cv=UIAlertController(title: "提示", message: "为获得授权使用摄像头，请在设置中打开", preferredStyle: .Alert);
+            let okAction=UIAlertAction(title: "设置", style: .Default, handler: {
+                action in
+                let seturi=NSURL(string: UIApplicationOpenSettingsURLString)!;
+                UIApplication.sharedApplication().openURL(seturi);
+            });
+            let cancelAction=UIAlertAction(title: "取消", style: .Cancel, handler: nil);
+            cv.addAction(okAction);
+            cv.addAction(cancelAction);
+            self.viewController?.presentViewController(cv, animated: true,completion: nil);
+           
+            let result=NSMutableDictionary()
+            result.setValue(nil, forKey: "format")
+            result.setValue(nil, forKey: "text")
+            result.setValue(true, forKey: "cancelled")
+            
+            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: result as [NSObject : AnyObject])
+            self.commandDelegate.sendPluginResult(pluginResult, callbackId:self.scanCommand!.callbackId);
+            return;
+            
+        }
+    
         //扫码框占屏幕的百分比
         let frameWith=0.6;
         var screenWith=UIScreen.mainScreen().bounds.width;
@@ -16,7 +42,7 @@ import AVFoundation
         }
         
         let offset =  Double(screenWith)*(1-frameWith)/2;
-        scanCommand=command
+        
         
         //设置扫码区域参数
         var style = LBXScanViewStyle()
