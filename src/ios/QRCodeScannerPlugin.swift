@@ -6,13 +6,21 @@ import AVFoundation
 @objc(HWPQRCodeScanner) class QRCodeScannerPlugin : CDVPlugin {
     var scanCommand:CDVInvokedUrlCommand?
     
-	func scan(command: CDVInvokedUrlCommand) {
-		//var message = command.arguments[0] as String
-		scanCommand=command
+    func scan(command: CDVInvokedUrlCommand) {
+        //var message = command.arguments[0] as String
+        //扫码框占屏幕的百分比
+        let frameWith=0.6;
+        var screenWith=UIScreen.mainScreen().bounds.width;
+        if(UIDevice.currentDevice().orientation==UIDeviceOrientation.LandscapeLeft||UIDevice.currentDevice().orientation==UIDeviceOrientation.LandscapeRight){
+            screenWith=UIScreen.mainScreen().bounds.height;
+        }
         
-		//设置扫码区域参数
+        let offset =  Double(screenWith)*(1-frameWith)/2;
+        scanCommand=command
+        
+        //设置扫码区域参数
         var style = LBXScanViewStyle()
-        style.centerUpOffset = 44;
+        //style.centerUpOffset = 44;
         style.photoframeAngleStyle = LBXScanViewPhotoframeAngleStyle.On;
         style.photoframeLineW = 6;
         style.photoframeAngleW = 24;
@@ -23,7 +31,7 @@ import AVFoundation
         
         
         //矩形框离左边缘及右边缘的距离
-        style.xScanRetangleOffset = 80;
+        style.xScanRetangleOffset = CGFloat(offset);
         
         //使用的支付宝里面网格图片
         style.animationImage = UIImage(named: "CDVQRCodeScanner.bundle/qrcode_scan_part_net")
@@ -34,15 +42,15 @@ import AVFoundation
         
         vc.isOpenInterestRect = true
         vc.callBack=callBack
-
-		self.viewController?.presentViewController(vc, animated: true,completion: nil)
-
-		
-	}
+        
+        self.viewController?.presentViewController(vc, animated: true,completion: nil)
+        
+        
+    }
     
     func callBack(codeType:String?,codeResult:String?,isCancelled:Bool) -> Void {
         self.viewController?.dismissViewControllerAnimated(false, completion: nil)
-             let result=NSMutableDictionary()
+        let result=NSMutableDictionary()
         result.setValue(codeType, forKey: "format")
         result.setValue(codeResult, forKey: "text")
         result.setValue(isCancelled, forKey: "cancelled")
