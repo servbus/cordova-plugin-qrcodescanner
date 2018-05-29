@@ -17,7 +17,7 @@
         <param name="ios-package" value="HWPQRCodeScanner"/>
       </feature>
     </config-file>
-    <preference name="CAMERA_USAGE_DESCRIPTION" default="需要使用相机进行下一步操作"/>
+    <preference name="CAMERA_USAGE_DESCRIPTION" default="需要您的相机扫描二维码或拍摄影像资料"/>
     <config-file target="*-Info.plist" parent="NSCameraUsageDescription">
       <string>$CAMERA_USAGE_DESCRIPTION</string>
     </config-file>
