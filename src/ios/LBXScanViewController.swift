@@ -29,9 +29,6 @@ open class LBXScanViewController: UIViewController, UIImagePickerControllerDeleg
     //识别码的类型
     var arrayCodeType:[String]?
     
-    //是否需要识别后的当前图像
-    var isNeedCodeImage = false
-    
     //禁止旋转，仅支持竖着的。其他的待研究实现方式
     
     open override var shouldAutorotate:Bool{
@@ -53,10 +50,6 @@ open class LBXScanViewController: UIViewController, UIImagePickerControllerDeleg
         self.edgesForExtendedLayout = UIRectEdge(rawValue: 0)
     }
     
-    open func setNeedCodeImage(needCodeImg:Bool)
-    {
-        isNeedCodeImage = needCodeImg;
-    }
     //设置框内识别
     open func setOpenInterestRect(isOpen:Bool){
         isOpenInterestRect = isOpen
@@ -101,7 +94,7 @@ open class LBXScanViewController: UIViewController, UIImagePickerControllerDeleg
                 arrayCodeType = [AVMetadataObjectTypeQRCode,AVMetadataObjectTypeEAN13Code,AVMetadataObjectTypeCode128Code]
             }
             
-            scanObj = LBXScanWrapper(videoPreView: self.view,objType:arrayCodeType!, isCaptureImg: isNeedCodeImage,cropRect:cropRect, success: { [weak self] (arrayResult) -> Void in
+            scanObj = LBXScanWrapper(videoPreView: self.view,objType:arrayCodeType!, cropRect:cropRect, success: { [weak self] (arrayResult) -> Void in
                 
                 if let strongSelf = self
                 {
@@ -202,50 +195,21 @@ open class LBXScanViewController: UIViewController, UIImagePickerControllerDeleg
         present(picker, animated: true, completion: nil)
     }
     
-    //MARK: -----相册选择图片识别二维码 （条形码没有找到系统方法）
-    @nonobjc open func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject])
-    {
-        picker.dismiss(animated: true, completion: nil)
-        
-        var image:UIImage? = info[UIImagePickerControllerEditedImage] as? UIImage
-        
-        if (image == nil )
-        {
-            image = info[UIImagePickerControllerOriginalImage] as? UIImage
-        }
-        
-        if(image != nil)
-        {
-            let arrayResult = LBXScanWrapper.recognizeQRImage(image: image!)
-            if arrayResult.count > 0
-            {
-                handleCodeResult(arrayResult: arrayResult)
-                return
-            }
-        }
-        
-        showMsg(title: "", message: "识别失败")
-    }
+
     
     func showMsg(title:String?,message:String?)
     {
-        if LBXScanWrapper.isSysIos8Later()
-        {
+        let alertController = UIAlertController(title: title, message:message, preferredStyle: UIAlertControllerStyle.alert)
+        let alertAction = UIAlertAction(title:  "知道了", style: UIAlertActionStyle.default) { [weak self] (alertAction) in
             
-            //if #available(iOS 8.0, *)
-            
-            let alertController = UIAlertController(title: title, message:message, preferredStyle: UIAlertControllerStyle.alert)
-            let alertAction = UIAlertAction(title:  "知道了", style: UIAlertActionStyle.default) { [weak self] (alertAction) in
-                
-                if let strongSelf = self
-                {
-                    strongSelf.startScan()
-                }
+            if let strongSelf = self
+            {
+                strongSelf.startScan()
             }
-            
-            alertController.addAction(alertAction)
-            present(alertController, animated: true, completion: nil)
         }
+        
+        alertController.addAction(alertAction)
+        present(alertController, animated: true, completion: nil)
     }
     deinit
     {
