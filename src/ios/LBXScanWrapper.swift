@@ -32,17 +32,10 @@ public struct  LBXScanResult {
 
 
 
-open class LBXScanWrapper: NSObject,AVCaptureMetadataOutputObjectsDelegate {
+open class LBXScanWrapper:NSObject, ZXCaptureDelegate {
     
-    let device:AVCaptureDevice? = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo);
-    
-    var input:AVCaptureDeviceInput?
-    var output:AVCaptureMetadataOutput
-    
-    let session = AVCaptureSession()
-    var previewLayer:AVCaptureVideoPreviewLayer?
-    var stillImageOutput:AVCaptureStillImageOutput?
-    
+    var _capture = ZXCapture()
+
     //存储返回结果
     var arrayResult:[LBXScanResult] = [];
     
@@ -50,6 +43,26 @@ open class LBXScanWrapper: NSObject,AVCaptureMetadataOutputObjectsDelegate {
     var successBlock:([LBXScanResult]) -> Void
     //当前扫码结果是否处理
     var isNeedScanResult:Bool = true
+    
+    //ZXCaptureDelegate
+    public func captureResult(_ capture: ZXCapture!, result: ZXResult!) {
+        
+        if result.isEqual(nil)
+        {
+            return
+        }
+        print("barcodeFormat")
+        print(String(describing: result.barcodeFormat))
+        print("text")
+        print(result.text)
+        
+        
+        //Vibrate
+        AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
+        //        cancelScan(sender: "" as AnyObject)
+        
+    }
+    
     
     /**
      初始化设备
@@ -61,98 +74,69 @@ open class LBXScanWrapper: NSObject,AVCaptureMetadataOutputObjectsDelegate {
      */
     init( videoPreView:UIView,objType:[String] = [AVMetadataObjectTypeQRCode],cropRect:CGRect=CGRect.zero,success:@escaping ( ([LBXScanResult]) -> Void) )
     {
-        do{
-            input = try AVCaptureDeviceInput(device: device)
-        }
-        catch let error as NSError {
-            print("AVCaptureDeviceInput(): \(error)")
-        }
-        
+//        self.view.backgroundColor = UIColor.black
         successBlock = success
-        
-        // Output
-        output = AVCaptureMetadataOutput()
-                
-        stillImageOutput = AVCaptureStillImageOutput();
-        
-        super.init()
-        
-        if device == nil
-        {
-            return
-        }
-        
-        if session.canAddInput(input)
-        {
-            session.addInput(input)
-        }
-        if session.canAddOutput(output)
-        {
-            session.addOutput(output)
-        }
-        if session.canAddOutput(stillImageOutput)
-        {
-            session.addOutput(stillImageOutput)
-        }
-        
-        let outputSettings:Dictionary = [AVVideoCodecJPEG:AVVideoCodecKey]
-        stillImageOutput?.outputSettings = outputSettings
-    
-        session.sessionPreset = AVCaptureSessionPresetHigh
-        
-        //参数设置
-        output.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-        
-        output.metadataObjectTypes = objType
-        
-        if !cropRect.equalTo(CGRect.zero)
-        {
-            //启动相机后，直接修改该参数无效
-            output.rectOfInterest = cropRect
-        }
 
-        previewLayer = AVCaptureVideoPreviewLayer(session: session)
-        previewLayer?.videoGravity = AVLayerVideoGravityResizeAspectFill
+        super.init()
+        print("init")
+        _capture.camera = _capture.back()
+        _capture.focusMode = AVCaptureFocusMode.continuousAutoFocus
+        _capture.rotation = 90.0
         
-        var frame:CGRect = videoPreView.frame
-        frame.origin = CGPoint.zero
-        previewLayer?.frame = frame
-        
-        videoPreView.layer .insertSublayer(previewLayer!, at: 0)
-        
-        if ( device!.isFocusPointOfInterestSupported && device!.isFocusModeSupported(AVCaptureFocusMode.continuousAutoFocus) )
-        {
-            do
-            {
-                try input?.device.lockForConfiguration()
-                
-                input?.device.focusMode = AVCaptureFocusMode.continuousAutoFocus
-                
-                input?.device.unlockForConfiguration()
-            }
-            catch let error as NSError {
-                print("device.lockForConfiguration(): \(error)")
-                
-            }
+        _capture.layer.frame = videoPreView.frame
+        var scaleVideo, scaleVideoX, scaleVideoY:CGFloat
+        var videoSizeX, videoSizeY:CGFloat
+        var transformedVideoRect = cropRect;
+        if(_capture.sessionPreset == AVCaptureSessionPreset1920x1080) {
+            print(_capture.sessionPreset)
+            videoSizeX = 1080;
+            videoSizeY = 1920;
+        } else {
+            videoSizeX = 720;
+            videoSizeY = 1280;
         }
+        
+//        if(UIInterfaceOrientationIsPortrait(orientation)) {
+            scaleVideoX = videoPreView.frame.size.width / videoSizeX;
+            scaleVideoY = videoPreView.frame.size.height / videoSizeY;
+        
+            scaleVideo = max(scaleVideoX, scaleVideoY);
+            if(scaleVideoX > scaleVideoY) {
+                transformedVideoRect.origin.y += (scaleVideo * videoSizeY - videoPreView.frame.size.height) / 2;
+            } else {
+                transformedVideoRect.origin.x += (scaleVideo * videoSizeX - videoPreView.frame.size.width) / 2;
+            }
+//        } else {
+//            scaleVideoX = self.view.frame.size.width / videoSizeY;
+//            scaleVideoY = self.view.frame.size.height / videoSizeX;
+//            scaleVideo = MAX(scaleVideoX, scaleVideoY);
+//            if(scaleVideoX > scaleVideoY) {
+//                transformedVideoRect.origin.y += (scaleVideo * videoSizeX - self.view.frame.size.height) / 2;
+//            } else {
+//                transformedVideoRect.origin.x += (scaleVideo * videoSizeY - self.view.frame.size.width) / 2;
+//            }
+//        }
+        let  captureSizeTransform = CGAffineTransform(scaleX:1/scaleVideo, y:1/scaleVideo);
+        _capture.scanRect = transformedVideoRect.applying(captureSizeTransform)
+
+        print("scanRect")
+        print(_capture.scanRect)
+        
+        
+        _capture.delegate = self
+        
+        videoPreView.layer .insertSublayer(_capture.layer, at: 0)
         
     }
     
     func start()
     {
-        if !session.isRunning
-        {
             isNeedScanResult = true
-            session.startRunning()
-        }
     }
     func stop()
     {
-        if session.isRunning
-        {
             isNeedScanResult = false
-            session.stopRunning()
-        }
+        
     }
     
     open func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputMetadataObjects metadataObjects: [Any]!, from connection: AVCaptureConnection!) {
@@ -223,88 +207,88 @@ open class LBXScanWrapper: NSObject,AVCaptureMetadataOutputObjectsDelegate {
     
     
     //MARK:切换识别区域
-    open func changeScanRect(cropRect:CGRect)
-    {
-        //待测试，不知道是否有效
-        stop()
-        output.rectOfInterest = cropRect
-        start()
-    }
+//    open func changeScanRect(cropRect:CGRect)
+//    {
+//        //待测试，不知道是否有效
+//        stop()
+//        output.rectOfInterest = cropRect
+//        start()
+//    }
 
-    //MARK: 切换识别码的类型
-    open func changeScanType(objType:[String])
-    {
-        //待测试中途修改是否有效
-        output.metadataObjectTypes = objType
-    }
-    
-    open func isGetFlash()->Bool
-    {
-        if (device != nil &&  device!.hasFlash && device!.hasTorch)
-        {
-            return true
-        }
-        return false
-    }
+//    //MARK: 切换识别码的类型
+//    open func changeScanType(objType:[String])
+//    {
+//        //待测试中途修改是否有效
+//        output.metadataObjectTypes = objType
+//    }
+//
+//    open func isGetFlash()->Bool
+//    {
+//        if (device != nil &&  device!.hasFlash && device!.hasTorch)
+//        {
+//            return true
+//        }
+//        return false
+//    }
 
-    /**
-     打开或关闭闪关灯
-     - parameter torch: true：打开闪关灯 false:关闭闪光灯
-     */
-    open func setTorch(torch:Bool)
-    {
-        if isGetFlash()
-        {
-            do
-            {
-                try input?.device.lockForConfiguration()
-                
-                input?.device.torchMode = torch ? AVCaptureTorchMode.on : AVCaptureTorchMode.off
-                
-                input?.device.unlockForConfiguration()
-            }
-            catch let error as NSError {
-                print("device.lockForConfiguration(): \(error)")
-                
-            }
-        }
-        
-    }
-    
-    
-    /**
-    ------闪光灯打开或关闭
-    */
-    open func changeTorch()
-    {
-        if isGetFlash()
-        {
-            do
-            {
-                try input?.device.lockForConfiguration()
-                
-                var torch = false
-                
-                if input?.device.torchMode == AVCaptureTorchMode.on
-                {
-                    torch = false
-                }
-                else if input?.device.torchMode == AVCaptureTorchMode.off
-                {
-                    torch = true
-                }
-                
-                input?.device.torchMode = torch ? AVCaptureTorchMode.on : AVCaptureTorchMode.off
-                
-                input?.device.unlockForConfiguration()
-            }
-            catch let error as NSError {
-                print("device.lockForConfiguration(): \(error)")
-                
-            }
-        }
-    }
-    
+//    /**
+//     打开或关闭闪关灯
+//     - parameter torch: true：打开闪关灯 false:关闭闪光灯
+//     */
+//    open func setTorch(torch:Bool)
+//    {
+//        if isGetFlash()
+//        {
+//            do
+//            {
+//                try input?.device.lockForConfiguration()
+//
+//                input?.device.torchMode = torch ? AVCaptureTorchMode.on : AVCaptureTorchMode.off
+//
+//                input?.device.unlockForConfiguration()
+//            }
+//            catch let error as NSError {
+//                print("device.lockForConfiguration(): \(error)")
+//
+//            }
+//        }
+//
+//    }
+//    
+//    
+//    /**
+//    ------闪光灯打开或关闭
+//    */
+//    open func changeTorch()
+//    {
+//        if isGetFlash()
+//        {
+//            do
+//            {
+//                try input?.device.lockForConfiguration()
+//                
+//                var torch = false
+//                
+//                if input?.device.torchMode == AVCaptureTorchMode.on
+//                {
+//                    torch = false
+//                }
+//                else if input?.device.torchMode == AVCaptureTorchMode.off
+//                {
+//                    torch = true
+//                }
+//                
+//                input?.device.torchMode = torch ? AVCaptureTorchMode.on : AVCaptureTorchMode.off
+//                
+//                input?.device.unlockForConfiguration()
+//            }
+//            catch let error as NSError {
+//                print("device.lockForConfiguration(): \(error)")
+//                
+//            }
+//        }
+//    }
+//    
     //MARK: ------获取系统默认支持的码的类型
     static func defaultMetaDataObjectTypes() ->[String]
     {

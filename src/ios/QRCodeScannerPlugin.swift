@@ -1,4 +1,4 @@
-﻿import UIKit
+import UIKit
 import Foundation
 import AVFoundation
 
@@ -65,9 +65,6 @@ import AVFoundation
         
         let vc = LBXScanViewController();
         vc.scanStyle = style
-        
-        
-        vc.isOpenInterestRect = true
         vc.callBack=callBack
         
         self.viewController?.present(vc, animated: true,completion: nil)

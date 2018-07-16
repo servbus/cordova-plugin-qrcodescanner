@@ -20,12 +20,7 @@ open class LBXScanViewController: UIViewController, UIImagePickerControllerDeleg
     open var qRScanView: LBXScanView?
     
     open var callBack:((String?, String?, Bool) -> Void)?
-    //public typealias callBackType = (String? , String? , Bool) -> Void
-    
-    
-    //启动区域识别功能
-    open var isOpenInterestRect = false
-    
+
     //识别码的类型
     var arrayCodeType:[String]?
     
@@ -50,10 +45,6 @@ open class LBXScanViewController: UIViewController, UIImagePickerControllerDeleg
         self.edgesForExtendedLayout = UIRectEdge(rawValue: 0)
     }
     
-    //设置框内识别
-    open func setOpenInterestRect(isOpen:Bool){
-        isOpenInterestRect = isOpen
-    }
     
     override open func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -79,12 +70,10 @@ open class LBXScanViewController: UIViewController, UIImagePickerControllerDeleg
         
         if (scanObj == nil)
         {
-            var cropRect = CGRect.zero
-            if isOpenInterestRect
-            {
-                cropRect = LBXScanView.getScanRectWithPreView(preView: self.view, style:scanStyle! )
-            }
-            
+            var cropRect = LBXScanView.getScanRectWithPreView(preView: self.view, style:scanStyle! )
+//            let cropRect = LBXScanView.getScanRectForAnimation()
+            cropRect = (qRScanView?.getScanRectForAnimation())!
+            print(cropRect)
             //识别各种码，
             //let arrayCode = LBXScanWrapper.defaultMetaDataObjectTypes()
             

@@ -370,7 +370,7 @@ open class LBXScanView: UIView
     {
         let XRetangleLeft = style.xScanRetangleOffset;
         var sizeRetangle = CGSize(width: preView.frame.size.width - XRetangleLeft*2, height: preView.frame.size.width - XRetangleLeft*2)
-        
+        print(sizeRetangle)
         if style.whRatio != 1
         {
             let w = sizeRetangle.width
@@ -386,7 +386,8 @@ open class LBXScanView: UIView
         let YMinRetangle = preView.frame.size.height / 2.0 - sizeRetangle.height/2.0 - style.centerUpOffset
         //扫码区域坐标
         let cropRect =  CGRect(x: XRetangleLeft, y: YMinRetangle, width: sizeRetangle.width, height: sizeRetangle.height)
-        
+        print(cropRect)
+
         
         //计算兴趣区域
         var rectOfInterest:CGRect
@@ -403,7 +404,7 @@ open class LBXScanView: UIView
                                     y: cropRect.origin.x/size.width,
                                     width: cropRect.size.height/fixHeight,
                                     height: cropRect.size.width/size.width)
-            
+            print(rectOfInterest.applying(CGAffineTransform(translationX: 1080, y: 1920)))
             
         } else {
             let fixWidth = size.height * 1080.0 / 1920.0;
@@ -413,6 +414,7 @@ open class LBXScanView: UIView
                                     width: cropRect.size.height/size.height,
                                     height: cropRect.size.width/fixWidth)
         }
+
         return rectOfInterest
     }
     
