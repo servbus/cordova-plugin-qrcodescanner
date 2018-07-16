@@ -365,58 +365,6 @@ open class LBXScanView: UIView
         return cropRect;
     }
 
-    //根据矩形区域，获取识别区域
-    static func getScanRectWithPreView(preView:UIView, style:LBXScanViewStyle) -> CGRect
-    {
-        let XRetangleLeft = style.xScanRetangleOffset;
-        var sizeRetangle = CGSize(width: preView.frame.size.width - XRetangleLeft*2, height: preView.frame.size.width - XRetangleLeft*2)
-        print(sizeRetangle)
-        if style.whRatio != 1
-        {
-            let w = sizeRetangle.width
-            var h = w / style.whRatio
-            
-            let hInt:Int = Int(h)
-            h = CGFloat(hInt)
-            
-            sizeRetangle = CGSize(width: w, height: h)
-        }
-        
-        //扫码区域Y轴最小坐标
-        let YMinRetangle = preView.frame.size.height / 2.0 - sizeRetangle.height/2.0 - style.centerUpOffset
-        //扫码区域坐标
-        let cropRect =  CGRect(x: XRetangleLeft, y: YMinRetangle, width: sizeRetangle.width, height: sizeRetangle.height)
-        print(cropRect)
-
-        
-        //计算兴趣区域
-        var rectOfInterest:CGRect
-        
-        //ref:http://www.cocoachina.com/ios/20141225/10763.html
-        let size = preView.bounds.size;
-        let p1 = size.height/size.width;
-        
-        let p2:CGFloat = 1920.0/1080.0 //使用了1080p的图像输出
-        if p1 < p2 {
-            let fixHeight = size.width * 1920.0 / 1080.0;
-            let fixPadding = (fixHeight - size.height)/2;
-            rectOfInterest = CGRect(x: (cropRect.origin.y + fixPadding)/fixHeight,
-                                    y: cropRect.origin.x/size.width,
-                                    width: cropRect.size.height/fixHeight,
-                                    height: cropRect.size.width/size.width)
-            print(rectOfInterest.applying(CGAffineTransform(translationX: 1080, y: 1920)))
-            
-        } else {
-            let fixWidth = size.height * 1080.0 / 1920.0;
-            let fixPadding = (fixWidth - size.width)/2;
-            rectOfInterest = CGRect(x: cropRect.origin.y/size.height,
-                                    y: (cropRect.origin.x + fixPadding)/fixWidth,
-                                    width: cropRect.size.height/size.height,
-                                    height: cropRect.size.width/fixWidth)
-        }
-
-        return rectOfInterest
-    }
     
     func getRetangeSize()->CGSize
     {

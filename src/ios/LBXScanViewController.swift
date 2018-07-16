@@ -21,11 +21,8 @@ open class LBXScanViewController: UIViewController, UIImagePickerControllerDeleg
     
     open var callBack:((String?, String?, Bool) -> Void)?
 
-    //识别码的类型
-    var arrayCodeType:[String]?
     
     //禁止旋转，仅支持竖着的。其他的待研究实现方式
-    
     open override var shouldAutorotate:Bool{
         return false
     }
@@ -40,7 +37,6 @@ open class LBXScanViewController: UIViewController, UIImagePickerControllerDeleg
         
         // Do any additional setup after loading the view.
         
-        // [self.view addSubview:_qRScanView];
         self.view.backgroundColor = UIColor.black
         self.edgesForExtendedLayout = UIRectEdge(rawValue: 0)
     }
@@ -70,27 +66,15 @@ open class LBXScanViewController: UIViewController, UIImagePickerControllerDeleg
         
         if (scanObj == nil)
         {
-            var cropRect = LBXScanView.getScanRectWithPreView(preView: self.view, style:scanStyle! )
-//            let cropRect = LBXScanView.getScanRectForAnimation()
-            cropRect = (qRScanView?.getScanRectForAnimation())!
-            print(cropRect)
-            //识别各种码，
-            //let arrayCode = LBXScanWrapper.defaultMetaDataObjectTypes()
+            let cropRect = (qRScanView?.getScanRectForAnimation())!
             
-            //指定识别几种码
-            if arrayCodeType == nil
-            {
-                arrayCodeType = [AVMetadataObjectTypeQRCode,AVMetadataObjectTypeEAN13Code,AVMetadataObjectTypeCode128Code]
-            }
-            
-            scanObj = LBXScanWrapper(videoPreView: self.view,objType:arrayCodeType!, cropRect:cropRect, success: { [weak self] (arrayResult) -> Void in
+            scanObj = LBXScanWrapper(videoPreView: self.view, cropRect:cropRect, success: { [weak self] (arrayResult) -> Void in
                 
                 if let strongSelf = self
                 {
                     //停止扫描动画
                     strongSelf.qRScanView?.stopScanAnimation()
-                    
-                    strongSelf.handleCodeResult(arrayResult: arrayResult)
+                    strongSelf.handleCodeResult(result: arrayResult)
                 }
             })
         }
@@ -101,8 +85,6 @@ open class LBXScanViewController: UIViewController, UIImagePickerControllerDeleg
         //开始扫描动画
         qRScanView?.startScanAnimation()
         
-        //相机运行
-        scanObj?.start()
     }
     
     open func drawScanView()
@@ -148,22 +130,14 @@ open class LBXScanViewController: UIViewController, UIImagePickerControllerDeleg
     /**
      处理扫码结果，如果是继承本控制器的，可以重写该方法,作出相应地处理
      */
-    open func handleCodeResult(arrayResult:[LBXScanResult])
+    open func handleCodeResult(result:LBXScanResult)
     {
-        
-        let result:LBXScanResult = arrayResult[0]
-        
-        //showMsg(result.strBarCodeType, message: result.strScanned)
-        callBack?(result.strBarCodeType,result.strScanned,false)
+        callBack?(String(result.strBarCodeType),result.strScanned,false)
     }
     
     override open func viewWillDisappear(_ animated: Bool) {
-        
         NSObject.cancelPreviousPerformRequests(withTarget: self)
-        
         qRScanView?.stopScanAnimation()
-        
-        scanObj?.stop()
     }
     
     open func openPhotoAlbum()
@@ -174,13 +148,9 @@ open class LBXScanViewController: UIViewController, UIImagePickerControllerDeleg
         }
         
         let picker = UIImagePickerController()
-        
         picker.sourceType = UIImagePickerControllerSourceType.photoLibrary
-        
         picker.delegate = self;
-        
         picker.allowsEditing = true
-        
         present(picker, animated: true, completion: nil)
     }
     
