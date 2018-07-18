@@ -13,20 +13,14 @@ public struct  LBXScanResult {
     
     //码内容
     public var strScanned:String? = ""
-    //扫描图像
-    public var imgScanned:UIImage?
     //码的类型
     public var strBarCodeType:Int32
     
-    //码在图像中的位置
-    public var arrayCorner:[AnyObject]?
     
-    public init(str:String?,img:UIImage?,barCodeType:Int32,corner:[AnyObject]?)
+    public init(str:String?,barCodeType:Int32)
     {
         self.strScanned = str
-        self.imgScanned = img
         self.strBarCodeType = barCodeType
-        self.arrayCorner = corner
     }
 }
 
@@ -41,15 +35,17 @@ open class LBXScanWrapper:NSObject, ZXCaptureDelegate {
 
     //ZXCaptureDelegate
     public func captureResult(_ capture: ZXCapture!, result: ZXResult!) {
-        
         if result.isEqual(nil)
         {
             return
         }
         
-        let res  = LBXScanResult(str: result.text, img: nil, barCodeType: Int32(result.barcodeFormat.rawValue), corner: nil)
+        let res  = LBXScanResult(str: result.text, barCodeType: Int32(result.barcodeFormat.rawValue))
         //Vibrate
         AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
+        _capture.layer.removeFromSuperlayer()
+        _capture.stop()
+        
         successBlock(res)
     }
     
@@ -76,7 +72,7 @@ open class LBXScanWrapper:NSObject, ZXCaptureDelegate {
         var videoSizeX, videoSizeY:CGFloat
         var transformedVideoRect = cropRect;
         if(_capture.sessionPreset == AVCaptureSessionPreset1920x1080) {
-            print(_capture.sessionPreset)
+//            print(_capture.sessionPreset)
             videoSizeX = 1080;
             videoSizeY = 1920;
         } else {
@@ -107,16 +103,14 @@ open class LBXScanWrapper:NSObject, ZXCaptureDelegate {
         let  captureSizeTransform = CGAffineTransform(scaleX:1/scaleVideo, y:1/scaleVideo);
         _capture.scanRect = transformedVideoRect.applying(captureSizeTransform)
 
-        print("scanRect")
-        print(_capture.scanRect)
-        
+//        print("scanRect")
+//        print(_capture.scanRect)
+//
         
         _capture.delegate = self
         
-        videoPreView.layer .insertSublayer(_capture.layer, at: 0)
-        
+        videoPreView.layer.insertSublayer(_capture.layer, at: 0)
     }
-    
 
     deinit
     {
