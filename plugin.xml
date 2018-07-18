@@ -12,6 +12,8 @@
     <clobbers target="cordova.plugins.qrcodeScanner"/>
   </js-module>
   <platform name="ios">
+    <hook type="after_plugin_install" src="hooks/after_plugin_install_hook_add_import.js" />
+
     <config-file target="config.xml" parent="/*">
       <feature name="QRCodeScanner">
         <param name="ios-package" value="HWPQRCodeScanner"/>
@@ -22,7 +24,6 @@
       <string>$CAMERA_USAGE_DESCRIPTION</string>
     </config-file>
     <resource-file src="src/ios/CDVQRCodeScanner.bundle"/>
-    <header-file src="src/ios/Bridging-Header.h"/>
     
     <source-file src="src/ios/QRCodeScannerPlugin.swift"/>
     <source-file src="src/ios/LBXPermissions.swift"/>
@@ -33,13 +34,8 @@
     <source-file src="src/ios/LBXScanViewStyle.swift"/>
     <source-file src="src/ios/LBXScanWrapper.swift"/>
 
-    <framework src="AVFoundation.framework"/>
-    <framework src="AssetsLibrary.framework"/>
-    <framework src="CoreVideo.framework"/>
-    <framework src="QuartzCore.framework"/>
-    <framework src="CoreGraphics.framework"/>
-    <framework src="CoreImage.framework"/>
-    <framework src="AudioToolbox.framework"/>
+    <framework src="libZXingObjC.a"/>
+    <framework src="ZXingObjC" type="podspec" spec="~> 3.2.2"/>
   </platform>
   <platform name="android">
     <source-file src="src/android/com/phonegap/plugins/barcodescanner/BarcodeScanner.java" target-dir="src/com/phonegap/plugins/barcodescanner"/>
