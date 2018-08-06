@@ -86,7 +86,7 @@ QRCodeScanner.prototype.scan = function (successCallback, errorCallback, config)
     }
 
     if (scanInProgress) {
-        errorCallback('Scan is already in progress');
+        //errorCallback('Scan is already in progress');
         return;
     }
 

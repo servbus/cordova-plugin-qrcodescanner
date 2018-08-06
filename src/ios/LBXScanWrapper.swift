@@ -14,10 +14,10 @@ public struct  LBXScanResult {
     //码内容
     public var strScanned:String? = ""
     //码的类型
-    public var strBarCodeType:Int32
+    public var strBarCodeType:UInt32
     
     
-    public init(str:String?,barCodeType:Int32)
+    public init(str:String?,barCodeType:UInt32)
     {
         self.strScanned = str
         self.strBarCodeType = barCodeType
@@ -34,17 +34,20 @@ open class LBXScanWrapper:NSObject, ZXCaptureDelegate {
     var successBlock:(LBXScanResult) -> Void
 
     //ZXCaptureDelegate
-    public func captureResult(_ capture: ZXCapture!, result: ZXResult!) {
-        if result.isEqual(nil)
+    public func captureResult(_ capture: ZXCapture?, result: ZXResult?) {
+        if result == nil
+        {
+            return
+        }
+        let bf = result?.barcodeFormat
+        if bf == kBarcodeFormatRSSExpanded || bf == kBarcodeFormatRSS14 || bf == kBarcodeFormatPDF417 || bf == kBarcodeFormatCode93
         {
             return
         }
         
-        let res  = LBXScanResult(str: result.text, barCodeType: Int32(result.barcodeFormat.rawValue))
+        let res  = LBXScanResult(str: result?.text, barCodeType: (result?.barcodeFormat.rawValue)!)
         //Vibrate
         AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
-        _capture.layer.removeFromSuperlayer()
-        _capture.stop()
         
         successBlock(res)
     }
@@ -68,40 +71,40 @@ open class LBXScanWrapper:NSObject, ZXCaptureDelegate {
         _capture.rotation = 90.0
         
         _capture.layer.frame = videoPreView.frame
-        var scaleVideo, scaleVideoX, scaleVideoY:CGFloat
-        var videoSizeX, videoSizeY:CGFloat
-        var transformedVideoRect = cropRect;
-        if(_capture.sessionPreset == AVCaptureSessionPreset1920x1080) {
-//            print(_capture.sessionPreset)
-            videoSizeX = 1080;
-            videoSizeY = 1920;
-        } else {
-            videoSizeX = 720;
-            videoSizeY = 1280;
-        }
-        
-//        if(UIInterfaceOrientationIsPortrait(orientation)) {
-            scaleVideoX = videoPreView.frame.size.width / videoSizeX;
-            scaleVideoY = videoPreView.frame.size.height / videoSizeY;
-        
-            scaleVideo = max(scaleVideoX, scaleVideoY);
-            if(scaleVideoX > scaleVideoY) {
-                transformedVideoRect.origin.y += (scaleVideo * videoSizeY - videoPreView.frame.size.height) / 2;
-            } else {
-                transformedVideoRect.origin.x += (scaleVideo * videoSizeX - videoPreView.frame.size.width) / 2;
-            }
+//        var scaleVideo, scaleVideoX, scaleVideoY:CGFloat
+//        var videoSizeX, videoSizeY:CGFloat
+//        var transformedVideoRect = cropRect;
+//        if(_capture.sessionPreset == AVCaptureSessionPreset1920x1080) {
+////            print(_capture.sessionPreset)
+//            videoSizeX = 1080;
+//            videoSizeY = 1920;
 //        } else {
-//            scaleVideoX = self.view.frame.size.width / videoSizeY;
-//            scaleVideoY = self.view.frame.size.height / videoSizeX;
-//            scaleVideo = MAX(scaleVideoX, scaleVideoY);
-//            if(scaleVideoX > scaleVideoY) {
-//                transformedVideoRect.origin.y += (scaleVideo * videoSizeX - self.view.frame.size.height) / 2;
-//            } else {
-//                transformedVideoRect.origin.x += (scaleVideo * videoSizeY - self.view.frame.size.width) / 2;
-//            }
+//            videoSizeX = 720;
+//            videoSizeY = 1280;
 //        }
-        let  captureSizeTransform = CGAffineTransform(scaleX:1/scaleVideo, y:1/scaleVideo);
-        _capture.scanRect = transformedVideoRect.applying(captureSizeTransform)
+//
+////        if(UIInterfaceOrientationIsPortrait(orientation)) {
+//            scaleVideoX = videoPreView.frame.size.width / videoSizeX;
+//            scaleVideoY = videoPreView.frame.size.height / videoSizeY;
+//
+//            scaleVideo = max(scaleVideoX, scaleVideoY);
+//            if(scaleVideoX > scaleVideoY) {
+//                transformedVideoRect.origin.y += (scaleVideo * videoSizeY - videoPreView.frame.size.height) / 2;
+//            } else {
+//                transformedVideoRect.origin.x += (scaleVideo * videoSizeX - videoPreView.frame.size.width) / 2;
+//            }
+////        } else {
+////            scaleVideoX = self.view.frame.size.width / videoSizeY;
+////            scaleVideoY = self.view.frame.size.height / videoSizeX;
+////            scaleVideo = MAX(scaleVideoX, scaleVideoY);
+////            if(scaleVideoX > scaleVideoY) {
+////                transformedVideoRect.origin.y += (scaleVideo * videoSizeX - self.view.frame.size.height) / 2;
+////            } else {
+////                transformedVideoRect.origin.x += (scaleVideo * videoSizeY - self.view.frame.size.width) / 2;
+////            }
+////        }
+//        let  captureSizeTransform = CGAffineTransform(scaleX:1/scaleVideo, y:1/scaleVideo);
+//        _capture.scanRect = transformedVideoRect.applying(captureSizeTransform)
 
 //        print("scanRect")
 //        print(_capture.scanRect)
@@ -114,6 +117,10 @@ open class LBXScanWrapper:NSObject, ZXCaptureDelegate {
 
     deinit
     {
+        _capture.layer.removeFromSuperlayer()
+        _capture.delegate = nil
+        
+        _capture.stop()
         print("LBXScanWrapper deinit")
     }
     
