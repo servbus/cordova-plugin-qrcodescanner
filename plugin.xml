@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-qrcodescanner" version="0.0.3">
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-qrcodescanner" version="0.0.4">
   <name>QRCodeScanner</name>
   <description>You can use the QRCodeScanner plugin to scan barcodes and QRCode(using the device's camera).</description>
   <license>apache</license>
   <repo>https://github.com/servbus/cordova-plugin-qrcodescanner.git</repo>
   <issue>https://github.com/servbus/cordova-plugin-qrcodescanner.git/issues</issue>
   <engines>
-    <engine name="cordova" version=">=3.0.0"/>
+    <engine name="cordova" version=">=7.1.0"/>
+    <engine name="cordova-android" version=">=6.3.0"/>
   </engines>
   <js-module src="www/qrcodescanner.js" name="QRCodeScanner">
     <clobbers target="cordova.plugins.qrcodeScanner"/>
@@ -45,24 +46,8 @@
       </feature>
     </config-file>
     <config-file target="AndroidManifest.xml" parent="/manifest/application">
-      <activity android:name="com.google.zxing.client.android.CaptureActivity" android:clearTaskOnLaunch="true" android:configChanges="orientation|keyboardHidden|screenSize" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:windowSoftInputMode="stateAlwaysHidden" android:exported="false">
-        <intent-filter>
-          <action android:name="com.google.zxing.client.android.SCAN"/>
-          <category android:name="android.intent.category.DEFAULT"/>
-        </intent-filter>
-      </activity>
-      <activity android:name="com.google.zxing.client.android.encode.EncodeActivity" android:label="Share">
-        <intent-filter>
-          <action android:name="com.phonegap.plugins.barcodescanner.ENCODE"/>
-          <category android:name="android.intent.category.DEFAULT"/>
-        </intent-filter>
-      </activity>
-      <activity android:name="com.google.zxing.client.android.HelpActivity" android:label="Share">
-        <intent-filter>
-          <action android:name="android.intent.action.VIEW"/>
-          <category android:name="android.intent.category.DEFAULT"/>
-        </intent-filter>
-      </activity>
+      <activity android:name="com.google.zxing.client.android.CaptureActivity" android:clearTaskOnLaunch="true" android:configChanges="orientation|keyboardHidden|screenSize" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:windowSoftInputMode="stateAlwaysHidden" android:exported="false"/>
+      <activity android:name="com.google.zxing.client.android.encode.EncodeActivity" android:label="Share"/>
     </config-file>
     <config-file target="AndroidManifest.xml" parent="/manifest">
       <uses-permission android:name="android.permission.CAMERA"/>
@@ -70,7 +55,8 @@
       <uses-feature android:name="android.hardware.camera" android:required="true"/>
     </config-file>
     <framework src="src/android/barcodescanner.gradle" custom="true" type="gradleReference"/>
-    <resource-file src="src/android/barcodescanner-release-2.0.1.aar" target="libs/barcodescanner.aar"/>
-    <dependency id="cordova-plugin-compat" version="^1.0.0"/>
+    <framework src="com.android.support:support-v4:$ANDROID_SUPPORT_V4_VERSION"/>
+    <lib-file src="src/android/barcodescanner-release-2.1.5.aar"/>
+    <preference name="ANDROID_SUPPORT_V4_VERSION" default="27.+"/>
   </platform>
 </plugin>

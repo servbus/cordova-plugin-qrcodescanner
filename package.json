@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-qrcodescanner",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "You can use the QRCodeScanner plugin to scan barcodes and QRCode(using the device's camera).",
   "cordova": {
     "id": "cordova-plugin-qrcodescanner",
